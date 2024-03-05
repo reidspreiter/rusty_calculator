@@ -110,6 +110,7 @@ fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<String>
                         tokens.push(c.to_string());
                     },
                     ')' => tokens.push(c.to_string()),
+                    '!' => tokens.push(c.to_string()),
                     _ => {
                         if c != ' ' && !variable_map.contains_key(&c) {
                             println!("'{}' is not a valid character. Solving without {}.", c, c);
@@ -142,6 +143,7 @@ fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<String>
 // Order of operations precedence for converting infix to postfix
 fn precedence(operator: &str) -> i8 {
     match operator {
+        "!" => 4,
         "^" => 3,
         "*" | "/" | "%" | "#" => 2,
         "\\" => 1,
@@ -157,7 +159,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;
@@ -167,7 +169,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     }
                 }
                 stack.push(token);
-            }
+            },
             "(" => stack.push(token),
             ")" => {
                 while let Some(top) = stack.pop() {
@@ -176,7 +178,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     }
                     postfix_expression.push(top);
                 }
-            }
+            },
             _ => postfix_expression.push(token),
         }
     }
@@ -220,7 +222,22 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                 } else {
                     return Err("Not enough operands".to_string());
                 }
-            }
+            },
+            "!" => {
+                if let Some(a) = stack.pop() {
+                    if a < 0.0 {
+                        return Err("Cannot take negative factorial".to_string());
+                    } else if a.fract() != 0.0 {
+                        return Err("Cannot evaluate decimal factorial (yet)".to_string());
+                    }
+                    let a_int = a as i32;
+                    let result = match a_int {
+                        0 | 1 => 1,
+                        _ => (2..=a_int).fold(1, |acc, x| acc * x),
+                    };
+                    stack.push(result as f64);
+                }
+            },
             operand => {
                 if let Ok(num) = operand.parse::<f64>() {
                     stack.push(num);
@@ -228,7 +245,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                     let error_message = format!("Invalid Operator {}", operand);
                     return Err(error_message);
                 }
-            }
+            },
         }
     }
 
