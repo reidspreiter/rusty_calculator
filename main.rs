@@ -5,7 +5,7 @@ use std::collections::HashMap;
 const OPERATORS: [&str; 9] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\"];
 
 // Tokenize User Equation into individual Strings
-fn tokenize(equation: &str, variable_map: &HashMap<char, &str>) -> Vec<String> {
+fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
     let mut number_buffer = String::new();
 
@@ -257,16 +257,16 @@ fn execute_command(command: &str) -> i8 {
 
 fn main() -> ExitCode {
     let mut variables = HashMap::new();
-    variables.insert('p', "3.14159265359");
-    variables.insert('e', "2.71828182845");
-    variables.insert('=', "0");
-    variables.insert('i', "1");
-    variables.insert('j', "1");
-    variables.insert('k', "1");
-    variables.insert('l', "1");
-    variables.insert('m', "1");
-    variables.insert('n', "1");
-    variables.insert('o', "1");
+    variables.insert('p', "3.14159265359".to_string());
+    variables.insert('e', "2.71828182845".to_string());
+    variables.insert('=', "0".to_string());
+    variables.insert('i', "1".to_string());
+    variables.insert('j', "1".to_string());
+    variables.insert('k', "1".to_string());
+    variables.insert('l', "1".to_string());
+    variables.insert('m', "1".to_string());
+    variables.insert('n', "1".to_string());
+    variables.insert('o', "1".to_string());
     
     println!("Welcome to Rusty Calculator. Enter your equations below:");
     loop {
@@ -299,6 +299,8 @@ fn main() -> ExitCode {
                         match evaluate(expression) {
                             Ok(result) => {
                                 println!("Result: {}", result);
+                                let answer = result.to_string();
+                                variables.insert('=', answer.clone());
                             },
                             Err(err) => println!("Error: {}", err),
                         }
