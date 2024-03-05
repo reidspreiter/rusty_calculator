@@ -1,10 +1,11 @@
 use std::io;
 use std::process::ExitCode;
+use std::collections::HashMap;
 
 const OPERATORS: [&str; 9] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\"];
 
 // Tokenize User Equation into individual Strings
-fn tokenize(equation: &str) -> Vec<String> {
+fn tokenize(equation: &str, variable_map: &HashMap<char, &str>) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
     let mut number_buffer = String::new();
 
@@ -12,6 +13,13 @@ fn tokenize(equation: &str) -> Vec<String> {
         match c {
             '0'..='9' | '.' | 'E' => number_buffer.push(c),
             _ => {
+                if let Some(value) = variable_map.get(&c) {
+                    if number_buffer != "-" && !number_buffer.is_empty() {
+                        tokens.push(number_buffer.clone());
+                        number_buffer.clear();
+                    }
+                    number_buffer.push_str(&value.to_string())
+                }
                 if !number_buffer.is_empty() {
                     if number_buffer == "-" {
                         number_buffer = "~".to_string();
@@ -102,8 +110,8 @@ fn tokenize(equation: &str) -> Vec<String> {
                         tokens.push(c.to_string());
                     },
                     ')' => tokens.push(c.to_string()),
-                    c => {
-                        if c != ' ' {
+                    _ => {
+                        if c != ' ' && !variable_map.contains_key(&c) {
                             println!("'{}' is not a valid character. Solving without {}.", c, c);
                         }
                     }
@@ -134,8 +142,7 @@ fn tokenize(equation: &str) -> Vec<String> {
 // Order of operations precedence for converting infix to postfix
 fn precedence(operator: &str) -> i8 {
     match operator {
-        "^" => 4,
-        "~" => 3,
+        "^" => 3,
         "*" | "/" | "%" | "#" => 2,
         "\\" => 1,
         "+" | "-" => 0,
@@ -249,6 +256,18 @@ fn execute_command(command: &str) -> i8 {
 }
 
 fn main() -> ExitCode {
+    let mut variables = HashMap::new();
+    variables.insert('p', "3.14159265359");
+    variables.insert('e', "2.71828182845");
+    variables.insert('=', "0");
+    variables.insert('i', "1");
+    variables.insert('j', "1");
+    variables.insert('k', "1");
+    variables.insert('l', "1");
+    variables.insert('m', "1");
+    variables.insert('n', "1");
+    variables.insert('o', "1");
+    
     println!("Welcome to Rusty Calculator. Enter your equations below:");
     loop {
         let mut text = String::new();
@@ -273,12 +292,14 @@ fn main() -> ExitCode {
                             return ExitCode::SUCCESS;
                         }
                     } else {
-                        let tokens = tokenize(equation);
+                        let tokens = tokenize(equation, &variables);
                         println!("Tokens: {:?}", tokens);
                         let expression = infix_to_postfix(tokens);
                         println!("Expression: {:?}", expression);
                         match evaluate(expression) {
-                            Ok(result) => println!("Result: {}", result),
+                            Ok(result) => {
+                                println!("Result: {}", result);
+                            },
                             Err(err) => println!("Error: {}", err),
                         }
                     }
