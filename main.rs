@@ -1,7 +1,7 @@
 use std::io;
 use std::process::ExitCode;
 
-const OPERATORS: [&str; 7] = ["+", "-", "*", "/", "^", "%", "#"];
+const OPERATORS: [&str; 8] = ["+", "-", "*", "/", "^", "%", "#", "("];
 
 // Tokenize User Equation into individual Strings
 fn tokenize(equation: &str) -> Vec<String> {
@@ -13,6 +13,19 @@ fn tokenize(equation: &str) -> Vec<String> {
             '0'..='9' | '.' | 'E' => number_buffer.push(c),
             _ => {
                 if !number_buffer.is_empty() {
+                    if number_buffer == "-" {
+                        number_buffer = "~".to_string();
+                    }
+                    if let Some(last) = tokens.last() {
+                        match last.as_str() {
+                            ")" => tokens.push("*".to_string()),
+                            _ => {
+                                if let Ok(_) = last.as_str().parse::<f64>() {
+                                    tokens.push("*".to_string());
+                                } else {}
+                            },
+                        }
+                    }
                     tokens.push(number_buffer.clone());
                     number_buffer.clear();
                 }
@@ -27,32 +40,77 @@ fn tokenize(equation: &str) -> Vec<String> {
                         }
                     },
                     '-' => {
-                        // FIXME: -8+8 and -(8+8)
-                        if let Some(last) = tokens.last() {
-                            if OPERATORS.contains(&last.as_str()) {
+                        match &tokens.last() {
+                            Some(last) if OPERATORS.contains(&last.as_str()) => {
                                 number_buffer.push(c);
-                            } else {
-                                tokens.push(c.to_string())
+                            }
+                            None => number_buffer.push(c), 
+                            _ => {
+                                tokens.push(c.to_string());
+                            }
+                        }
+                    },
+                    '*' => tokens.push(c.to_string()),
+                    '/' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "/" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "#".to_string();
+                                    }
+                                },
+                                _ => tokens.push(c.to_string()),
                             }
                         } else {
                             tokens.push(c.to_string());
                         }
                     },
-                    '*' => tokens.push(c.to_string()), // FIXME: add all the correct multiplication scenarios
-                    '/' => tokens.push(c.to_string()), // FIXME: // = #
                     '%' => tokens.push(c.to_string()),
                     '#' => tokens.push(c.to_string()),
                     '^' => tokens.push(c.to_string()),
-                    '(' => tokens.push(c.to_string()),
+                    '(' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "~" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "-1".to_string();
+                                        tokens.push("*".to_string());
+                                    }
+                                },
+                                ")" => tokens.push("*".to_string()),
+                                _ => {
+                                    if let Ok(_) = last.as_str().parse::<f64>() {
+                                        tokens.push("*".to_string());
+                                    } else {}
+                                },
+                            }
+                        }
+                        tokens.push(c.to_string());
+                    },
                     ')' => tokens.push(c.to_string()),
-                    _ => {
-                        println!("'{}' is not a valid character. Solving without {}.", c, c);
+                    c => {
+                        if c != ' ' {
+                            println!("'{}' is not a valid character. Solving without {}.", c, c);
+                        }
                     }
                 }
             }
         }
     }
     if !number_buffer.is_empty() {
+        if number_buffer == "-" {
+            number_buffer = "~".to_string();
+        }
+        if let Some(last) = tokens.last() {
+            match last.as_str() {
+                ")" => tokens.push("*".to_string()),
+                _ => {
+                    if let Ok(_) = last.as_str().parse::<f64>() {
+                        tokens.push("*".to_string());
+                    } else {}
+                },
+            }
+        }
         tokens.push(number_buffer.clone());
         number_buffer.clear();
     }
