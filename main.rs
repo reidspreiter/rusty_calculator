@@ -1,7 +1,7 @@
 use std::io;
 use std::process::ExitCode;
 
-const OPERATORS: [&str; 8] = ["+", "-", "*", "/", "^", "%", "#", "("];
+const OPERATORS: [&str; 9] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\"];
 
 // Tokenize User Equation into individual Strings
 fn tokenize(equation: &str) -> Vec<String> {
@@ -65,8 +65,22 @@ fn tokenize(equation: &str) -> Vec<String> {
                             tokens.push(c.to_string());
                         }
                     },
-                    '%' => tokens.push(c.to_string()),
+                    '%' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "%" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "\\".to_string();
+                                    }
+                                },
+                                _ => tokens.push(c.to_string()),
+                            }
+                        } else {
+                            tokens.push(c.to_string());
+                        }
+                    },
                     '#' => tokens.push(c.to_string()),
+                    '\\' => tokens.push(c.to_string()),
                     '^' => tokens.push(c.to_string()),
                     '(' => {
                         if let Some(last) = tokens.last() {
@@ -120,9 +134,10 @@ fn tokenize(equation: &str) -> Vec<String> {
 // Order of operations precedence for converting infix to postfix
 fn precedence(operator: &str) -> i8 {
     match operator {
-        "^" => 3,
-        "~" => 2,
-        "*" | "/" | "%" | "#" => 1,
+        "^" => 4,
+        "~" => 3,
+        "*" | "/" | "%" | "#" => 2,
+        "\\" => 1,
         "+" | "-" => 0,
         _ => -1,
     }
@@ -135,7 +150,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;
@@ -172,7 +187,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
 
     for token in expression {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" => {
                 if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
                     let result = match token.as_str() {
                         "+" => a + b,
@@ -188,6 +203,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                         "^" => a.powf(b),
                         "%" => a % b,
                         "#" => (a / b).floor(),
+                        "\\" => (a / 100.0) * b,
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
                             return Err(error_message);
