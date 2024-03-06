@@ -65,6 +65,14 @@ pub fn test() {
     tests.insert("pe", "8.539734222645713");
     tests.insert("p e", "8.539734222645713");
     tests.insert("1;p=e=======;", "8.539734222645713");
+    tests.insert("R2^2", "2");
+    tests.insert("-2^3;-=", "8");
+    tests.insert("-2^2;(-=)^2", "16");
+    tests.insert("-3R2^3", "-2");
+    tests.insert("2*1R4", "8");
+    // I don't even need this much precision. If you need it, use BigInt and BigRational
+    tests.insert("(R(R(R(R4))))^2^2^2^2", "3.9999999999999982"); 
+    tests.insert("(-3)R8+1", "1.5");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);
@@ -78,5 +86,5 @@ pub fn test() {
 
     let total_tests = failure + success;
     let percent_successful = success as f32 / total_tests as f32 * 100.0;
-    println!("Testing Complete. {}% successful.", percent_successful);
+    println!("Testing Complete.\n{} tests ran. {}% successful.", total_tests, percent_successful);
 }

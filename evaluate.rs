@@ -4,7 +4,7 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
 
     for token in expression {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "R" => {
                 if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
                     let result = match token.as_str() {
                         "+" => a + b,
@@ -21,6 +21,15 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                         "%" => a % b,
                         "#" => (a / b).trunc(),
                         "\\" => (a / 100.0) * b,
+                        "R" => {
+                            if a == 0.0 {
+                                return Err("Cannot take 0th root of a number".to_string());
+                            }
+                            if b < 0.0 && a % 2.0 == 0.0 {
+                                return Err("Cannot take even root of a negative number".to_string());
+                            }
+                            b.powf(1.0 / a)
+                        }
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
                             return Err(error_message);
@@ -31,17 +40,27 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                     return Err("Not enough operands".to_string());
                 }
             },
-            "!" => {
+            "!" | "~" => {
                 if let Some(a) = stack.pop() {
-                    if a < 0.0 {
-                        return Err("Cannot take negative factorial".to_string());
-                    } else if a.fract() != 0.0 {
-                        return Err("Cannot evaluate decimal factorial (yet)".to_string());
-                    }
-                    let a_int = a as i32;
-                    let result = match a_int {
-                        0 | 1 => 1,
-                        _ => (2..=a_int).fold(1, |acc, x| acc * x),
+                    let result = match token.as_str() {
+                        "!" => {
+                            if a < 0.0 {
+                                return Err("Cannot take negative factorial".to_string());
+                            } else if a.fract() != 0.0 {
+                                return Err("Cannot evaluate decimal factorial (yet)".to_string());
+                            }
+                            let a_int = a as i32;
+                            let factorial = match a_int {
+                                0 | 1 => 1,
+                                _ => (2..=a_int).fold(1, |acc, x| acc * x),
+                            };
+                            factorial as f64
+                        },
+                        "~" => -a,
+                        operator => {
+                            let error_message = format!("Invalid Operator {}", operator);
+                            return Err(error_message);
+                        },
                     };
                     stack.push(result as f64);
                 }

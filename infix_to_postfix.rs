@@ -1,10 +1,12 @@
 // Order of operations precedence for converting infix to postfix
 fn precedence(operator: &str) -> i8 {
     match operator {
-        "!" => 4,
-        "^" => 3,
-        "*" | "/" | "%" | "#" => 2,
-        "\\" => 1,
+        "!" => 6,
+        "^" => 5,
+        "R" => 4,
+        "*" | "/" | "%" | "#" => 3,
+        "\\" => 2,
+        "~" => 1,
         "+" | "-" => 0,
         _ => -1,
     }
@@ -17,7 +19,7 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" | "R" | "~" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;

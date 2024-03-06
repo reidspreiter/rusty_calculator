@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-const OPERATORS: [&str; 9] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\"];
+const OPERATORS: [&str; 11] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\", "R", "~"];
 
 // Tokenize User Equation into individual Strings
 pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<String> {
@@ -12,16 +12,13 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<Str
             '0'..='9' | '.' | 'E' => number_buffer.push(c),
             _ => {
                 if let Some(value) = variable_map.get(&c) {
-                    if number_buffer != "-" && !number_buffer.is_empty() {
+                    if!number_buffer.is_empty() {
                         tokens.push(number_buffer.clone());
                         number_buffer.clear();
                     }
                     number_buffer.push_str(&value.to_string())
                 }
                 if !number_buffer.is_empty() {
-                    if number_buffer == "-" {
-                        number_buffer = "~".to_string();
-                    }
                     if let Some(last) = tokens.last() {
                         match last.as_str() {
                             ")" => tokens.push("*".to_string()),
@@ -48,12 +45,12 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<Str
                     '-' => {
                         match &tokens.last() {
                             Some(last) if OPERATORS.contains(&last.as_str()) => {
-                                number_buffer.push(c);
-                            }
-                            None => number_buffer.push(c), 
+                                tokens.push("~".to_string());
+                            },
+                            None => tokens.push("~".to_string()), 
                             _ => {
                                 tokens.push(c.to_string());
-                            }
+                            },
                         }
                     },
                     '*' => tokens.push(c.to_string()),
@@ -91,12 +88,6 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<Str
                     '(' => {
                         if let Some(last) = tokens.last() {
                             match last.as_str() {
-                                "~" => {
-                                    if let Some(last) = tokens.last_mut() {
-                                        *last = "-1".to_string();
-                                        tokens.push("*".to_string());
-                                    }
-                                },
                                 ")" => tokens.push("*".to_string()),
                                 _ => {
                                     if let Ok(_) = last.as_str().parse::<f64>() {
@@ -109,19 +100,29 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<Str
                     },
                     ')' => tokens.push(c.to_string()),
                     '!' => tokens.push(c.to_string()),
+                    'R' => {
+                        match &tokens.last() {
+                            Some(last) if OPERATORS.contains(&last.as_str()) => {
+                                tokens.push("2".to_string());
+                            },
+                            Some(last) if last.as_str() == "~" => {
+                                tokens.push("2".to_string());
+                            },
+                            None => tokens.push("2".to_string()),
+                            _ => {},
+                        }
+                        tokens.push(c.to_string());
+                    },
                     _ => {
                         if c != ' ' && !variable_map.contains_key(&c) {
                             println!("'{}' is not a valid character. Solving without {}.", c, c);
                         }
-                    }
+                    },
                 }
             }
         }
     }
     if !number_buffer.is_empty() {
-        if number_buffer == "-" {
-            number_buffer = "~".to_string();
-        }
         if let Some(last) = tokens.last() {
             match last.as_str() {
                 ")" => tokens.push("*".to_string()),
