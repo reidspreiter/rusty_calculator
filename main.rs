@@ -1,10 +1,11 @@
 use std::io;
 use std::process::ExitCode;
+use std::collections::HashMap;
 
-const OPERATORS: [&str; 7] = ["+", "-", "*", "/", "^", "%", "#"];
+const OPERATORS: [&str; 9] = ["+", "-", "*", "/", "^", "%", "#", "(", "\\"];
 
 // Tokenize User Equation into individual Strings
-fn tokenize(equation: &str) -> Vec<String> {
+fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
     let mut number_buffer = String::new();
 
@@ -12,7 +13,27 @@ fn tokenize(equation: &str) -> Vec<String> {
         match c {
             '0'..='9' | '.' | 'E' => number_buffer.push(c),
             _ => {
+                if let Some(value) = variable_map.get(&c) {
+                    if number_buffer != "-" && !number_buffer.is_empty() {
+                        tokens.push(number_buffer.clone());
+                        number_buffer.clear();
+                    }
+                    number_buffer.push_str(&value.to_string())
+                }
                 if !number_buffer.is_empty() {
+                    if number_buffer == "-" {
+                        number_buffer = "~".to_string();
+                    }
+                    if let Some(last) = tokens.last() {
+                        match last.as_str() {
+                            ")" => tokens.push("*".to_string()),
+                            _ => {
+                                if let Ok(_) = last.as_str().parse::<f64>() {
+                                    tokens.push("*".to_string());
+                                } else {}
+                            },
+                        }
+                    }
                     tokens.push(number_buffer.clone());
                     number_buffer.clear();
                 }
@@ -27,32 +48,92 @@ fn tokenize(equation: &str) -> Vec<String> {
                         }
                     },
                     '-' => {
-                        // FIXME: -8+8 and -(8+8)
-                        if let Some(last) = tokens.last() {
-                            if OPERATORS.contains(&last.as_str()) {
+                        match &tokens.last() {
+                            Some(last) if OPERATORS.contains(&last.as_str()) => {
                                 number_buffer.push(c);
-                            } else {
-                                tokens.push(c.to_string())
+                            }
+                            None => number_buffer.push(c), 
+                            _ => {
+                                tokens.push(c.to_string());
+                            }
+                        }
+                    },
+                    '*' => tokens.push(c.to_string()),
+                    '/' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "/" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "#".to_string();
+                                    }
+                                },
+                                _ => tokens.push(c.to_string()),
                             }
                         } else {
                             tokens.push(c.to_string());
                         }
                     },
-                    '*' => tokens.push(c.to_string()), // FIXME: add all the correct multiplication scenarios
-                    '/' => tokens.push(c.to_string()), // FIXME: // = #
-                    '%' => tokens.push(c.to_string()),
+                    '%' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "%" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "\\".to_string();
+                                    }
+                                },
+                                _ => tokens.push(c.to_string()),
+                            }
+                        } else {
+                            tokens.push(c.to_string());
+                        }
+                    },
                     '#' => tokens.push(c.to_string()),
+                    '\\' => tokens.push(c.to_string()),
                     '^' => tokens.push(c.to_string()),
-                    '(' => tokens.push(c.to_string()),
+                    '(' => {
+                        if let Some(last) = tokens.last() {
+                            match last.as_str() {
+                                "~" => {
+                                    if let Some(last) = tokens.last_mut() {
+                                        *last = "-1".to_string();
+                                        tokens.push("*".to_string());
+                                    }
+                                },
+                                ")" => tokens.push("*".to_string()),
+                                _ => {
+                                    if let Ok(_) = last.as_str().parse::<f64>() {
+                                        tokens.push("*".to_string());
+                                    } else {}
+                                },
+                            }
+                        }
+                        tokens.push(c.to_string());
+                    },
                     ')' => tokens.push(c.to_string()),
+                    '!' => tokens.push(c.to_string()),
                     _ => {
-                        println!("'{}' is not a valid character. Solving without {}.", c, c);
+                        if c != ' ' && !variable_map.contains_key(&c) {
+                            println!("'{}' is not a valid character. Solving without {}.", c, c);
+                        }
                     }
                 }
             }
         }
     }
     if !number_buffer.is_empty() {
+        if number_buffer == "-" {
+            number_buffer = "~".to_string();
+        }
+        if let Some(last) = tokens.last() {
+            match last.as_str() {
+                ")" => tokens.push("*".to_string()),
+                _ => {
+                    if let Ok(_) = last.as_str().parse::<f64>() {
+                        tokens.push("*".to_string());
+                    } else {}
+                },
+            }
+        }
         tokens.push(number_buffer.clone());
         number_buffer.clear();
     }
@@ -62,9 +143,10 @@ fn tokenize(equation: &str) -> Vec<String> {
 // Order of operations precedence for converting infix to postfix
 fn precedence(operator: &str) -> i8 {
     match operator {
+        "!" => 4,
         "^" => 3,
-        "~" => 2,
-        "*" | "/" | "%" | "#" => 1,
+        "*" | "/" | "%" | "#" => 2,
+        "\\" => 1,
         "+" | "-" => 0,
         _ => -1,
     }
@@ -77,7 +159,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;
@@ -87,7 +169,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     }
                 }
                 stack.push(token);
-            }
+            },
             "(" => stack.push(token),
             ")" => {
                 while let Some(top) = stack.pop() {
@@ -96,7 +178,7 @@ fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     }
                     postfix_expression.push(top);
                 }
-            }
+            },
             _ => postfix_expression.push(token),
         }
     }
@@ -114,7 +196,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
 
     for token in expression {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" => {
                 if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
                     let result = match token.as_str() {
                         "+" => a + b,
@@ -130,6 +212,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                         "^" => a.powf(b),
                         "%" => a % b,
                         "#" => (a / b).floor(),
+                        "\\" => (a / 100.0) * b,
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
                             return Err(error_message);
@@ -139,7 +222,22 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                 } else {
                     return Err("Not enough operands".to_string());
                 }
-            }
+            },
+            "!" => {
+                if let Some(a) = stack.pop() {
+                    if a < 0.0 {
+                        return Err("Cannot take negative factorial".to_string());
+                    } else if a.fract() != 0.0 {
+                        return Err("Cannot evaluate decimal factorial (yet)".to_string());
+                    }
+                    let a_int = a as i32;
+                    let result = match a_int {
+                        0 | 1 => 1,
+                        _ => (2..=a_int).fold(1, |acc, x| acc * x),
+                    };
+                    stack.push(result as f64);
+                }
+            },
             operand => {
                 if let Ok(num) = operand.parse::<f64>() {
                     stack.push(num);
@@ -147,7 +245,7 @@ fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                     let error_message = format!("Invalid Operator {}", operand);
                     return Err(error_message);
                 }
-            }
+            },
         }
     }
 
@@ -175,6 +273,18 @@ fn execute_command(command: &str) -> i8 {
 }
 
 fn main() -> ExitCode {
+    let mut variables = HashMap::new();
+    variables.insert('p', "3.14159265359".to_string());
+    variables.insert('e', "2.71828182845".to_string());
+    variables.insert('=', "0".to_string());
+    variables.insert('i', "1".to_string());
+    variables.insert('j', "1".to_string());
+    variables.insert('k', "1".to_string());
+    variables.insert('l', "1".to_string());
+    variables.insert('m', "1".to_string());
+    variables.insert('n', "1".to_string());
+    variables.insert('o', "1".to_string());
+    
     println!("Welcome to Rusty Calculator. Enter your equations below:");
     loop {
         let mut text = String::new();
@@ -199,12 +309,16 @@ fn main() -> ExitCode {
                             return ExitCode::SUCCESS;
                         }
                     } else {
-                        let tokens = tokenize(equation);
+                        let tokens = tokenize(equation, &variables);
                         println!("Tokens: {:?}", tokens);
                         let expression = infix_to_postfix(tokens);
                         println!("Expression: {:?}", expression);
                         match evaluate(expression) {
-                            Ok(result) => println!("Result: {}", result),
+                            Ok(result) => {
+                                println!("Result: {}", result);
+                                let answer = result.to_string();
+                                variables.insert('=', answer.clone());
+                            },
                             Err(err) => println!("Error: {}", err),
                         }
                     }
