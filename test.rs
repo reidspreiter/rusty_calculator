@@ -3,6 +3,7 @@ use crate::tokenize::tokenize;
 use crate::infix_to_postfix::infix_to_postfix;
 use crate::evaluate::evaluate;
 
+// Executes the text equation and returns the final result
 fn start_to_finish(text: &str) -> String {
     let mut variables = HashMap::new();
     variables.insert('p', "3.14159265359".to_string());
@@ -39,6 +40,7 @@ fn start_to_finish(text: &str) -> String {
     result.to_string()
 }
 
+// Runs all tests
 pub fn test() {
     println!("Starting tests...");
     let mut success = 0;
@@ -70,7 +72,8 @@ pub fn test() {
     tests.insert("-2^2;(-=)^2", "16");
     tests.insert("-3R2^3", "-2");
     tests.insert("2*1R4", "8");
-    // I don't even need this much precision. If you need it, use BigInt and BigRational
+    //Yes, should be 4, but I don't even need more than 3 decimal places. 
+    //If you need it, use BigInt and BigRational
     tests.insert("(R(R(R(R4))))^2^2^2^2", "3.9999999999999982"); 
     tests.insert("(-3)R8+1", "1.5");
 
