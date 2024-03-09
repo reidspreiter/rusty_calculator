@@ -3,7 +3,7 @@ fn precedence(operator: &str) -> i8 {
     match operator {
         "!" => 6,
         "^" => 5,
-        "R" => 4,
+        "R" | "L" | "H" => 4,
         "*" | "/" | "%" | "#" => 3,
         "\\" => 2,
         "~" => 1,
@@ -19,7 +19,7 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" | "R" | "~" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" | "R" | "~" | "L" | "H" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;

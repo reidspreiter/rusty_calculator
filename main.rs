@@ -6,6 +6,7 @@ mod infix_to_postfix;
 mod evaluate;
 mod command;
 mod test;
+mod complex_evaluate;
 
 fn main() -> ExitCode {
     let mut variables = HashMap::new();
@@ -44,15 +45,19 @@ fn main() -> ExitCode {
                             return ExitCode::SUCCESS;
                         }
                     } else {
-                        let tokens = tokenize::tokenize(equation, &variables);
-                        println!("Tokens: {:?}", tokens);
-                        let expression = infix_to_postfix::infix_to_postfix(tokens);
-                        println!("Expression: {:?}", expression);
-                        match evaluate::evaluate(expression) {
-                            Ok(result) => {
-                                println!("Result: {}", result);
-                                let answer = result.to_string();
-                                variables.insert('=', answer.clone());
+                        match tokenize::tokenize(equation, &variables) {
+                            Ok(tokens) => {
+                                println!("Tokens: {:?}", tokens);
+                                let expression = infix_to_postfix::infix_to_postfix(tokens);
+                                println!("Expression: {:?}", expression);
+                                match evaluate::evaluate(expression) {
+                                    Ok(result) => {
+                                        println!("Result: {}", result);
+                                        let answer = result.to_string();
+                                        variables.insert('=', answer.clone());
+                                    },
+                                    Err(err) => println!("Error: {}", err),
+                                }
                             },
                             Err(err) => println!("Error: {}", err),
                         }

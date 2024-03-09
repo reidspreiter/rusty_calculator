@@ -23,12 +23,16 @@ fn start_to_finish(text: &str) -> String {
         let first_char = trimmed_eq.chars().nth(0);
         match first_char {
             Some(_) => {
-                let tokens = tokenize(equation, &variables);
-                let expression = infix_to_postfix(tokens);
-                match evaluate(expression) {
-                    Ok(result) => {
-                        let answer = result.to_string();
-                        variables.insert('=', answer.clone());
+                match tokenize(equation, &variables) {
+                    Ok(tokens) => {
+                        let expression = infix_to_postfix(tokens);
+                        match evaluate(expression) {
+                            Ok(result) => {
+                                let answer = result.to_string();
+                                variables.insert('=', answer.clone());
+                            },
+                            Err(err) => println!("Error: {}", err),
+                        }
                     },
                     Err(err) => println!("Error: {}", err),
                 }
@@ -76,6 +80,12 @@ pub fn test() {
     //If you need it, use BigInt and BigRational
     tests.insert("(R(R(R(R4))))^2^2^2^2", "3.9999999999999982"); 
     tests.insert("(-3)R8+1", "1.5");
+    tests.insert("RL10", "2");
+    tests.insert("R(L10)", "1");
+    tests.insert("5Ne", "5");
+    tests.insert("Ne-eLe", "0");
+    tests.insert("3H4-R(4^2+3^2)", "0");
+    tests.insert("-3H-4-R((-4)^2+(-3)^2)", "0");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);

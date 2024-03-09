@@ -4,7 +4,7 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
 
     for token in expression {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "R" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "R" | "L" | "H" => {
                 if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
                     let result = match token.as_str() {
                         "+" => a + b,
@@ -29,11 +29,23 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                                 return Err("Cannot take even root of a negative number".to_string());
                             }
                             b.powf(1.0 / a)
-                        }
+                        },
+                        "L" => {
+                            if b < 0.0 {
+                                return Err("Cannot take log of a negative number".to_string());
+                            }
+                            if a < 0.0 {
+                                return Err("Cannot compute log with a negative base".to_string());
+                            }
+                            b.log10() / a.log10()
+                        },
+                        "H" => {
+                            (a*a + b*b).sqrt()
+                        },
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
                             return Err(error_message);
-                        }
+                        },
                     };
                     stack.push(result);
                 } else {
