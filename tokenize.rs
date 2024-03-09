@@ -138,7 +138,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         tokens[tokens_index].push("L".to_string());
                     },
                     'H' => tokens[tokens_index].push(c.to_string()),
-                    'S' => {
+                    'S' | 'P' => {
                         complex_types.push(c);
                     }
                     _ => {
@@ -151,16 +151,18 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                                     tokens.push(Vec::new());
                                 },
                                 ']' => {
-                                    complex_evaluate();
-                                    tokens.pop();
-                                    complex_types.pop();
                                     tokens_index -= 1;
+                                    if let Some(complex_tokens) = tokens.pop() {
+                                        if let Some(complex_type) = complex_types.pop() {
+                                            tokens[tokens_index].push(complex_evaluate(complex_tokens, complex_type));
+                                        }
+                                    }
                                 },
                                 ',' => tokens[tokens_index].push(c.to_string()),
                                 _ => {
                                     if c == 'x' {
                                         if let Some(last) = complex_types.last() {
-                                            if last != &'S' {
+                                            if last != &'S' && last != &'P' {
                                                 println!("'{}' is not a valid character for complexity type {}. Solving without {}.", c, last, c);
                                             } else {
                                                 tokens[tokens_index].push(c.to_string());
@@ -175,7 +177,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
             }
         }
     }
-    
+
     if !number_buffer.is_empty() {
         if let Some(last) = tokens[tokens_index].last() {
             match last.as_str() {

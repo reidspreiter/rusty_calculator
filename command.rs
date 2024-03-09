@@ -2,7 +2,6 @@ use crate::test;
 
 // Execute commands
 pub fn execute_command(command: &str) -> i8 {
-    println!("matching {}", command);
     match command {
         "/help" => println!("Help"),
         "/reset" => println!("Reset"),
