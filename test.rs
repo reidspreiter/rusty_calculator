@@ -57,6 +57,10 @@ pub fn test() {
     tests.insert("2++2", "4");
     tests.insert("-4+4", "0");
     tests.insert("-(4+4)", "-8");
+    tests.insert("-4*-4", "16");
+    tests.insert("-4/-4", "1");
+    tests.insert("4*-4", "-16");
+    tests.insert("-4/4", "-1");
     tests.insert("5!^2+3", "14403");
     tests.insert("-2+10/2*40+5!", "318");
     tests.insert("4 4", "16");
@@ -76,8 +80,6 @@ pub fn test() {
     tests.insert("-2^2;(-=)^2", "16");
     tests.insert("-3R2^3", "-2");
     tests.insert("2*1R4", "8");
-    //Yes, should be 4, but I don't even need more than 3 decimal places. 
-    //If you need it, use BigInt and BigRational
     tests.insert("(R(R(R(R4))))^2^2^2^2", "3.9999999999999982"); 
     tests.insert("(-3)R8+1", "1.5");
     tests.insert("RL10", "2");
@@ -86,6 +88,13 @@ pub fn test() {
     tests.insert("Ne-eLe", "0");
     tests.insert("3H4-R(4^2+3^2)", "0");
     tests.insert("-3H-4-R((-4)^2+(-3)^2)", "0");
+    tests.insert("S[0, 4, 4] - (4+4+4+4+4)", "0");
+    tests.insert("4S[0, 3, 3]", "48");
+    tests.insert("P[1, 3, 3]4", "108");
+    tests.insert("S[0, 9, x^2]-(1+4+9+16+25+36+49+64+81)", "0");
+    tests.insert("P[S[P[1, 3, x+1], P[1, 3, x+2], x+3], 1668, R(x-50)]", "2613070.9999998086");
+    tests.insert("2(2(2(2(2", "32");
+    tests.insert("S[0, 2(2(2+2, 2]", "34");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);
