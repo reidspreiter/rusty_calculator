@@ -50,7 +50,7 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                     return Err("Not enough operands".to_string());
                 }
             },
-            "!" | "~" => {
+            "!" | "~" | "A" => {
                 if let Some(a) = stack.pop() {
                     let result = match token.as_str() {
                         "!" => {
@@ -58,7 +58,8 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                                 return Err("Cannot take negative factorial".to_string());
                             } 
                             if a.fract() != 0.0 {
-                                return Err("Cannot evaluate decimal factorial (yet)".to_string());
+                                return Err("Cannot evaluate decimal factorial 
+                                            (maybe in the future with gamma)".to_string());
                             }
                             let a_int = a as i32;
                             let factorial = match a_int {
@@ -68,6 +69,7 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                             factorial as f64
                         },
                         "~" => -a,
+                        "A" => a.abs(),
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
                             return Err(error_message);

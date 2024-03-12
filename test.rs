@@ -95,11 +95,13 @@ pub fn test() {
     tests.insert("P[S[P[1, 3, x+1], P[1, 3, x+2], x+3], 1668, R(x-50)]", "2613070.9999998086");
     tests.insert("2(2(2(2(2", "32");
     tests.insert("S[0, 2(2(2+2, 2]", "34");
-    tests.insert("A[4E10,2,3.4]", "13333333335.133333");
-    tests.insert("A[1+2,3+4,5/6,5^3,-5,43*2]", "36.13888888888889");
+    tests.insert("M[4E10,2,3.4]", "13333333335.133333");
+    tests.insert("M[1+2,3+4,5/6,5^3,-5,43*2]", "36.13888888888889");
     tests.insert("O[1, 2, 3, 4, 5]", "1.4142135623730951");
     tests.insert("O[1+3, 4+7, 5/10, R25,4^2,-50]","21.938835429438818");
     tests.insert("Q[3+3,-17,R144]", "48");
+    tests.insert("5A-1", "5");
+    tests.insert("A(5-6+A(5-50)", "44");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);

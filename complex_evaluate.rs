@@ -6,7 +6,7 @@ pub fn complex_evaluate(tokens: &Vec<String>, complexity_type: &char) -> Result<
     match complexity_type {
         'S' => summation(&tokens),
         'P' => product(&tokens),
-        'A' => average(&tokens),
+        'M' => mean(&tokens),
         'O' => std_deviation(&tokens),
         'Q' => quadratic(&tokens),
         _ => Err("Unknown complexity type".to_string()),
@@ -123,7 +123,7 @@ fn product(tokens: &Vec<String>) -> Result<String, String> {
 }
 
 // Compute the average of given tokens as [value,value,...].
-fn average(tokens: &Vec<String>) -> Result<String, String> {
+fn mean(tokens: &Vec<String>) -> Result<String, String> {
     let separated_tokens = separate_vector(&tokens, 0);
 
     let total_values = separated_tokens.len();

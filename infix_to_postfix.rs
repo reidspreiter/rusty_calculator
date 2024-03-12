@@ -4,7 +4,7 @@ fn precedence(operator: &str) -> i8 {
         "!" => 6,
         "^" => 5,
         "~" => 4,
-        "R" | "L" | "H" => 3,
+        "R" | "L" | "H" | "A" => 3,
         "*" | "/" | "%" | "#" => 2,
         "\\" => 1,
         "+" | "-" => 0,
@@ -19,14 +19,12 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
 
     for token in tokens {
         match token.as_str() {
-            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" | "R" | "~" | "L" | "H" => {
+            "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "!" | "R" | "~" | "L" | "H" | "A" => {
                 while let Some(top) = stack.last() {
                     if top == "(" || precedence(&top) < precedence(token.as_str()) {
                         break;
                     }
-                    if let Some(popped) = stack.pop() {
-                        postfix_expression.push(popped);
-                    }
+                    postfix_expression.push(stack.pop().unwrap());
                 }
                 stack.push(token);
             },
@@ -42,9 +40,6 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
             _ => postfix_expression.push(token),
         }
     }
-
-    while let Some(token) = stack.pop() {
-        postfix_expression.push(token);
-    }
+    postfix_expression.extend(stack.into_iter().rev());
     postfix_expression
 }

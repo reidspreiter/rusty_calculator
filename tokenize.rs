@@ -1,8 +1,8 @@
 use crate::complex_evaluate::complex_evaluate;
 use std::collections::HashMap;
 
-const OPERATORS: [&str; 14] = ["+", "-", "*", "/", "^", "%", "#", 
-                                "(", "\\", "R", "~", "L", "H", ","];
+const OPERATORS: [&str; 15] = ["+", "-", "*", "/", "^", "%", "#", "(", 
+                                "\\", "R", "~", "L", "H", ",", "A"];
 
 // Tokenize usser entered equation into individual strings tokens.
 // Also evaluate complex functions and push their result as a token.
@@ -30,10 +30,9 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                 // Push number buffer.
                 if !number_buffer.is_empty() {
                     // If last is f64 or ')', push '*' before pushing number.
-                    if let Some(last) = curr_tokens.last() {
-                        if last == ")" || last.parse::<f64>().is_ok() {
-                            curr_tokens.push("*".to_string());
-                        }
+                    if curr_tokens.last()
+                    .map_or(false, |last| last == ")" || last.parse::<f64>().is_ok()) {
+                        curr_tokens.push("*".to_string());
                     }
                     curr_tokens.push(number_buffer.clone());
                     number_buffer.clear();
@@ -83,10 +82,9 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     '^' => curr_tokens.push(c.to_string()),
                     '(' => {
                         // If last is f64 or ')', push '*' before pushing '('.
-                        if let Some(last) = curr_tokens.last() {
-                            if last == ")" || last.parse::<f64>().is_ok() {
-                                curr_tokens.push("*".to_string());
-                            }
+                        if curr_tokens.last()
+                        .map_or(false, |last| last == ")" || last.parse::<f64>().is_ok()) {
+                            curr_tokens.push("*".to_string());
                         }
                         curr_tokens.push(c.to_string());
                         balanced_parenthesis[index] += 1;
@@ -114,23 +112,28 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     },
                     'N' => {
                         // Push e and L to simulate ln functionality.
-                        if let Some(last) = curr_tokens.last() {
-                            if !OPERATORS.contains(&last.as_str()) {
-                                curr_tokens.push("*".to_string());
-                            }
+                        if curr_tokens.last()
+                        .map_or(false, |last| !OPERATORS.contains(&last.as_str())) {
+                            curr_tokens.push("*".to_string());
                         }
                         curr_tokens.push("2.71828182845".to_string());
                         curr_tokens.push("L".to_string());
                     },
                     'H' => curr_tokens.push(c.to_string()),
-                    'S' | 'P' | 'A' | 'O' | 'Q' => {
+                    'A' => {
+                        if curr_tokens.last()
+                        .map_or(false, |last| !OPERATORS.contains(&last.as_str())) {
+                            curr_tokens.push("*".to_string());
+                        }
+                        curr_tokens.push(c.to_string());
+                    },
+                    'S' | 'P' | 'M' | 'O' | 'Q' => {
                         // Store complex type and push '*' if needed
                         complex_tokens = true;
                         complex_types.push(c);
-                        if let Some(last) = curr_tokens.last() {
-                            if last == ")" || last.parse::<f64>().is_ok() {
-                                curr_tokens.push("*".to_string());
-                            }
+                        if curr_tokens.last()
+                        .map_or(false, |last| last == ")" || last.parse::<f64>().is_ok()) {
+                            curr_tokens.push("*".to_string());
                         }
                     },
                     '[' if complex_tokens => {
@@ -203,10 +206,9 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
     let curr_tokens = &mut tokens[index];
     if !number_buffer.is_empty() {
         // If last is f64 or ')', push '*' before pushing number.
-        if let Some(last) = curr_tokens.last() {
-            if last == ")" || last.parse::<f64>().is_ok() {
-                curr_tokens.push("*".to_string());
-            }
+        if curr_tokens.last()
+        .map_or(false, |last| last == ")" || last.parse::<f64>().is_ok()) {
+            curr_tokens.push("*".to_string());
         }
         curr_tokens.push(number_buffer.clone());
         number_buffer.clear();
