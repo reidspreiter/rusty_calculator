@@ -5,17 +5,18 @@ use crate::evaluate::evaluate;
 
 // Executes the text equation and returns the final result
 fn start_to_finish(text: &str) -> String {
-    let mut variables = HashMap::new();
-    variables.insert('p', "3.14159265359".to_string());
-    variables.insert('e', "2.71828182845".to_string());
-    variables.insert('=', "0".to_string());
-    variables.insert('i', "1".to_string());
-    variables.insert('j', "1".to_string());
-    variables.insert('k', "1".to_string());
-    variables.insert('l', "1".to_string());
-    variables.insert('m', "1".to_string());
-    variables.insert('n', "1".to_string());
-    variables.insert('o', "1".to_string());
+    let mut variables: HashMap<char, String> = [
+        ('p', "3.14159265359".to_string()),
+        ('e', "2.71828182845".to_string()),
+        ('=', "0".to_string()),
+        ('i', "1".to_string()),
+        ('j', "1".to_string()),
+        ('k', "1".to_string()),
+        ('l', "1".to_string()),
+        ('m', "1".to_string()),
+        ('n', "1".to_string()),
+        ('o', "1".to_string()),
+    ].iter().cloned().collect();
 
     let equations: Vec<&str> = text.split(";").collect();
     for equation in equations {
@@ -40,7 +41,7 @@ fn start_to_finish(text: &str) -> String {
             None => {},
         }
     }
-    let result = &variables.get(&'=').unwrap();
+    let result = variables.get(&'=').unwrap();
     result.to_string()
 }
 
