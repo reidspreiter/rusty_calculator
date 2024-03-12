@@ -78,7 +78,7 @@ pub fn test() {
     tests.insert("R2^2", "2");
     tests.insert("-2^3;-=", "8");
     tests.insert("-2^2;(-=)^2", "16");
-    tests.insert("-3R2^3", "-2");
+    tests.insert("-3R2^3", "0.5");
     tests.insert("2*1R4", "8");
     tests.insert("(R(R(R(R4))))^2^2^2^2", "3.9999999999999982"); 
     tests.insert("(-3)R8+1", "1.5");
@@ -95,6 +95,8 @@ pub fn test() {
     tests.insert("P[S[P[1, 3, x+1], P[1, 3, x+2], x+3], 1668, R(x-50)]", "2613070.9999998086");
     tests.insert("2(2(2(2(2", "32");
     tests.insert("S[0, 2(2(2+2, 2]", "34");
+    tests.insert("A[4E10,2,3.4]", "13333333335.133333");
+    tests.insert("A[1+2,3+4,5/6,5^3,-5,43*2]", "36.13888888888889");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);

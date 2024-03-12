@@ -39,12 +39,10 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                             }
                             b.log10() / a.log10()
                         },
-                        "H" => {
-                            (a*a + b*b).sqrt()
-                        },
+                        "H" => (a*a + b*b).sqrt(),
                         operator => {
                             let error_message = format!("Invalid Operator {}", operator);
-                            return Err(error_message);
+                            return Err(error_message)
                         },
                     };
                     stack.push(result);
@@ -58,7 +56,8 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                         "!" => {
                             if a < 0.0 {
                                 return Err("Cannot take negative factorial".to_string());
-                            } else if a.fract() != 0.0 {
+                            } 
+                            if a.fract() != 0.0 {
                                 return Err("Cannot evaluate decimal factorial (yet)".to_string());
                             }
                             let a_int = a as i32;
@@ -81,7 +80,7 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
                 if let Ok(num) = operand.parse::<f64>() {
                     stack.push(num);
                 } else {
-                    let error_message = format!("Invalid Operator {}", operand);
+                    let error_message = format!("Invalid Operand {}", operand);
                     return Err(error_message);
                 }
             },
@@ -90,11 +89,9 @@ pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
 
     if let Some(result) = stack.pop() {
         if stack.is_empty() {
-            Ok(result)
-        } else {
-            Err("Too many operands".to_string())
+            return Ok(result);
         }
-    } else {
-        Err("Empty expression".to_string())
+        return Err("Too many operands".to_string());
     }
+    Err("Empty expression".to_string())
 }

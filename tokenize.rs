@@ -58,32 +58,24 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     '*' => curr_tokens.push(c.to_string()),
                     '/' => {
                         // If last is '/', push '#'. Otherwise, push '/'.
-                        if let Some(last) = curr_tokens.last() {
-                            match last.as_str() {
-                                "/" => {
-                                    if let Some(last) = curr_tokens.last_mut() {
-                                        *last = "#".to_string();
-                                    }
-                                },
-                                _ => curr_tokens.push(c.to_string()),
-                            }
-                        } else {
-                            curr_tokens.push(c.to_string());
+                        match curr_tokens.last() {
+                            Some(last) if last == "/" => {
+                                if let Some(last) = curr_tokens.last_mut() {
+                                    *last = "#".to_string();
+                                }
+                            },
+                            _ => curr_tokens.push(c.to_string()),
                         }
                     },
                     '%' => {
                         // If last is '%', push '\\'. Otherwise, push '%'.
-                        if let Some(last) = curr_tokens.last() {
-                            match last.as_str() {
-                                "%" => {
-                                    if let Some(last) = curr_tokens.last_mut() {
-                                        *last = "\\".to_string();
-                                    }
-                                },
-                                _ => curr_tokens.push(c.to_string()),
-                            }
-                        } else {
-                            curr_tokens.push(c.to_string());
+                        match curr_tokens.last() {
+                            Some(last) if last == "%" => {
+                                if let Some(last) = curr_tokens.last_mut() {
+                                    *last = "\\".to_string();
+                                }
+                            },
+                            _ => curr_tokens.push(c.to_string()),
                         }
                     },
                     '#' => curr_tokens.push(c.to_string()),
@@ -131,7 +123,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         curr_tokens.push("L".to_string());
                     },
                     'H' => curr_tokens.push(c.to_string()),
-                    'S' | 'P' => {
+                    'S' | 'P' | 'A' | 'O' | 'Q' => {
                         // Store complex type and push '*' if needed
                         complex_tokens = true;
                         complex_types.push(c);
@@ -142,11 +134,13 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         }
                     },
                     '[' if complex_tokens => {
+                        // Initialize new complexity level values.
                         index += 1;
                         tokens.push(Vec::new());
                         balanced_parenthesis.push(0);
                     },
                     ']' if complex_tokens => {
+                        // Complexity level complete. Evaluate complexity and push result.
                         if index == 0 {
                             return Err("Unable to tokenize complexities. 
                                         Dumping equation.".to_string());
@@ -162,7 +156,10 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         }
                         if let Some(ctokens) = tokens.pop() {
                             if let Some(ctype) = complex_types.pop() {
-                                tokens[index].push(complex_evaluate(ctokens, ctype));
+                                match complex_evaluate(&ctokens, &ctype) {
+                                    Ok(result) => tokens[index].push(result),
+                                    Err(err) => return Err(err),
+                                }
                             }
                         }
                     },
@@ -176,6 +173,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         curr_tokens.push(c.to_string());
                     },
                     _ => {
+                        // Ignore whitespace and x when necessary.
                         if c == 'x' {
                             if let Some(last) = complex_types.last() {
                                 match last {
@@ -186,7 +184,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                             }
                         } else if complex_types.is_empty() && c != ' ' 
                             && !variable_map.contains_key(&c) {
-                            println!("'{}' is not a valid character. Solving without {}.", c, c);
+                            println!("'{}' is an invalid character. Solving without '{}'.", c, c);
                         }
                     },
                 }
@@ -212,11 +210,8 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
     }
     if let Some(final_tokens) = tokens.pop() {
         if tokens.is_empty() {
-            Ok(final_tokens)
-        } else {
-            Err("Unable to tokenize complexities. Dumping equation.".to_string())
+            return Ok(final_tokens);
         }
-    } else {
-        Err("Unable to tokenize complexities. Dumping equation.".to_string())
     }
+    Err("Unable to tokenize complexities".to_string())
 }
