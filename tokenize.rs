@@ -135,6 +135,9 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     },
                     '[' if complex_tokens => {
                         // Initialize new complexity level values.
+                        if complex_types.len() != index + 1 {
+                            return Err("Rogue brackets without complexity type".to_string());
+                        }
                         index += 1;
                         tokens.push(Vec::new());
                         balanced_parenthesis.push(0);
@@ -157,6 +160,11 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         if let Some(ctokens) = tokens.pop() {
                             if let Some(ctype) = complex_types.pop() {
                                 match complex_evaluate(&ctokens, &ctype) {
+                                    Ok(result) if ctype == 'Q' => {
+                                        let results: Vec<&str> = result.split(',').collect();
+                                        println!("Quadratic results: {}, {}", results[0], results[1]);
+                                        tokens[index].push(results[1].to_string());
+                                    },
                                     Ok(result) => tokens[index].push(result),
                                     Err(err) => return Err(err),
                                 }
@@ -182,7 +190,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                                                     type {}. Solving without x.", last),
                                 }
                             }
-                        } else if complex_types.is_empty() && c != ' ' 
+                        } else if complex_types.is_empty() && c != ' ' && c != '\t' 
                             && !variable_map.contains_key(&c) {
                             println!("'{}' is an invalid character. Solving without '{}'.", c, c);
                         }

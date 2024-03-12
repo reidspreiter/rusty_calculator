@@ -7,6 +7,8 @@ pub fn complex_evaluate(tokens: &Vec<String>, complexity_type: &char) -> Result<
         'S' => summation(&tokens),
         'P' => product(&tokens),
         'A' => average(&tokens),
+        'O' => std_deviation(&tokens),
+        'Q' => quadratic(&tokens),
         _ => Err("Unknown complexity type".to_string()),
     }
 }
@@ -21,7 +23,7 @@ fn separate_vector(tokens: &Vec<String>, length_limit: usize) -> Vec<Vec<String>
             "," => {
                 if let Some(last) = separated_tokens.last() {
                     if !last.is_empty() {
-                        if last.len() == length_limit {
+                        if separated_tokens.len() == length_limit {
                             break;
                         }
                         separated_tokens.push(Vec::new());
@@ -43,7 +45,7 @@ fn separate_vector(tokens: &Vec<String>, length_limit: usize) -> Vec<Vec<String>
     separated_tokens
 }
 
-// Compute the summation of given tokens as [start,upper limit,equation]
+// Compute the summation of given tokens as [start,upper limit,equation].
 fn summation(tokens: &Vec<String>) -> Result<String, String> {
     let separated_tokens = separate_vector(&tokens, 3);
     
@@ -81,7 +83,7 @@ fn summation(tokens: &Vec<String>) -> Result<String, String> {
     Ok(summation_result.to_string())
 }
 
-// Compute the product of given tokens as [start,upper limit,equation]
+// Compute the product of given tokens as [start,upper limit,equation].
 fn product(tokens: &Vec<String>) -> Result<String, String> {
     let separated_tokens = separate_vector(&tokens, 3);
 
@@ -120,6 +122,7 @@ fn product(tokens: &Vec<String>) -> Result<String, String> {
     Ok(product_result.to_string())
 }
 
+// Compute the average of given tokens as [value,value,...].
 fn average(tokens: &Vec<String>) -> Result<String, String> {
     let separated_tokens = separate_vector(&tokens, 0);
 
@@ -128,13 +131,73 @@ fn average(tokens: &Vec<String>) -> Result<String, String> {
         return Err("Missing average values".to_string());
     }
 
-    let mut sum = 0.0;
-    for equation_tokens in separated_tokens {
-        match evaluate(infix_to_postfix(equation_tokens)) {
-            Ok(result) => sum += result,
-            Err(_) => return Err("Could not evaluate average value equation".to_string()),
+    let sum = separated_tokens.iter().try_fold(0.0, |acc, equation_tokens| {
+        match evaluate(infix_to_postfix(equation_tokens.to_vec())) {
+            Ok(result) => Ok(acc + result),
+            Err(_) => Err("Could not evaluate average value equation".to_string()),
         }
-    }
+    })?;
     let average = sum / total_values as f64;
     Ok(average.to_string())
+}
+
+// Compute the standard deviation of given tokens as [value,value,...].
+fn std_deviation(tokens: &Vec<String>) -> Result<String, String> {
+    let separated_tokens = separate_vector(&tokens, 0);
+
+    let total_values = separated_tokens.len() as f64;
+    if total_values == 0.0 {
+        return Err("Missing standard deviation values".to_string());
+    }
+
+    let mut values: Vec<f64> = Vec::new();
+    let sum = separated_tokens.iter().try_fold(0.0, |acc, equation_tokens| {
+        match evaluate(infix_to_postfix(equation_tokens.to_vec())) {
+            Ok(result) => {
+                values.push(result);
+                Ok(acc + result)
+            }
+            Err(_) => Err("Could not evaluate average value equation".to_string()),
+        }
+    })?;
+    let mean = sum / total_values;
+    let sum_of_squared_differences = values.iter().map(|x| (x - mean).powi(2)).sum::<f64>();
+    let standard_deviation = (sum_of_squared_differences / total_values).sqrt();
+    Ok(standard_deviation.to_string())
+}
+
+// Computes quadratic formula of given tokens as [a,b,c].
+fn quadratic(tokens: &Vec<String>) -> Result<String, String> {
+    let separated_tokens = separate_vector(&tokens, 3);
+
+    match separated_tokens.len() {
+        0 => return Err("Missing quadratic a, b, and c values".to_string()),
+        1 => return Err("Missing quadratic b and c values.".to_string()),
+        2 => return Err("Missing quadratic c value".to_string()),
+        _ => {}
+    }
+
+    let a = match evaluate(infix_to_postfix(separated_tokens[0].clone())) {
+        Ok(result) => result as f64,
+        Err(_) => return Err("Could not evaluate quadratic a value".to_string()),
+    };
+
+    let b = match evaluate(infix_to_postfix(separated_tokens[1].clone())) {
+        Ok(result) => result as f64,
+        Err(_) => return Err("Could not evaluate quadratic b value".to_string()),
+    };
+
+    let c = match evaluate(infix_to_postfix(separated_tokens[2].clone())) {
+        Ok(result) => result as f64,
+        Err(_) => return Err("Could not evaluate quadratic c value".to_string()),
+    };
+
+    let discriminant = b.powi(2) - (4.0 * a * c);
+    if discriminant < 0.0 {
+        return Err("No real quadratic solutions".to_string());
+    }
+    let first_solution = (-b + discriminant) / 2.0 * a;
+    let second_solution = (-b - discriminant) / 2.0 * a;
+    let results = format!("{},{}", first_solution, second_solution);
+    Ok(results)
 }

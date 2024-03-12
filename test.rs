@@ -97,6 +97,9 @@ pub fn test() {
     tests.insert("S[0, 2(2(2+2, 2]", "34");
     tests.insert("A[4E10,2,3.4]", "13333333335.133333");
     tests.insert("A[1+2,3+4,5/6,5^3,-5,43*2]", "36.13888888888889");
+    tests.insert("O[1, 2, 3, 4, 5]", "1.4142135623730951");
+    tests.insert("O[1+3, 4+7, 5/10, R25,4^2,-50]","21.938835429438818");
+    tests.insert("Q[3+3,-17,R144]", "48");
 
     for (&equation, &expected) in tests.iter() {
         let result = start_to_finish(equation);
@@ -110,5 +113,6 @@ pub fn test() {
 
     let total_tests = failure + success;
     let percent_successful = success as f32 / total_tests as f32 * 100.0;
-    println!("Testing Complete.\n{} tests ran. {}% successful.", total_tests, percent_successful);
+    println!("Testing Complete!\n{} tests ran. {} tests failed. {}% successful.", 
+            total_tests, failure, percent_successful);
 }
