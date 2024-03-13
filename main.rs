@@ -25,40 +25,35 @@ fn main() -> ExitCode {
         let equations: Vec<&str> = text.split(";").collect();
         for equation in equations {
             let trimmed_eq = equation.trim();
-            let first_char = trimmed_eq.chars().nth(0);
-            match first_char {
-                Some(char) => {
-                    if char == '/' || char == '_' {
-                        command::execute_command(equation, &variables, &mut settings);
-                        if settings["quit"] {
-                            println!("Thank you for using Rusty Calculator. Goodbye!");
-                            return ExitCode::SUCCESS;
-                        }
-                    } else {
-                        match tokenize::tokenize(equation, &variables) {
+            if let Some(first) = trimmed_eq.chars().nth(0) {
+                match first {
+                    '/' => command::execute_command(trimmed_eq, &mut variables, &mut settings),
+                    '_' => command::change_variable(trimmed_eq, &mut variables),
+                    _ => {
+                        match tokenize::tokenize(trimmed_eq, &variables) {
                             Ok(tokens) => {
+                                let expression = infix_to_postfix::infix_to_postfix(&tokens);
                                 if settings["reveal"] {
                                     println!("Tokens: {:?}", tokens);
-                                }
-                                let expression = infix_to_postfix::infix_to_postfix(tokens);
-                                if settings["reveal"] {
                                     println!("Expression: {:?}", expression);
                                 }
                                 match evaluate::evaluate(expression) {
                                     Ok(result) => {
                                         println!("Result: {}", result);
-                                        let answer = result.to_string();
-                                        variables.insert('=', answer.clone());
+                                        variables.insert('=', result.to_string());
                                     },
-                                    Err(err) => println!("Error: {}", err),
+                                    Err(e) => println!("Error: {}", e),
                                 }
                             },
-                            Err(err) => println!("Error: {}", err),
+                            Err(e) => println!("Error: {}", e),
                         }
                     }
-                },
-                None => {},
+                }
             }
+        }
+        if settings["quit"] {
+            println!("Thank you for using Rusty Calculator. Goodbye!");
+            return ExitCode::SUCCESS;
         }
     }
 }

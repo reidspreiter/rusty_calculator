@@ -2,14 +2,14 @@ use crate::infix_to_postfix::infix_to_postfix;
 use crate::evaluate::evaluate;
 
 // Calls correct complexity function.
-pub fn complex_evaluate(tokens: &Vec<String>, complexity_type: &char) -> Result<String, String> {
+pub fn complex_evaluate<'a>(tokens: &'a Vec<String>, complexity_type: &char) -> Result<String, &'a str> {
     match complexity_type {
         'S' => summation(&tokens),
         'P' => product(&tokens),
         'M' => mean(&tokens),
         'O' => std_deviation(&tokens),
         'Q' => quadratic(&tokens),
-        _ => Err("Unknown complexity type".to_string()),
+        _ => Err("Unknown complexity type"),
     }
 }
 
@@ -46,23 +46,23 @@ fn separate_vector(tokens: &Vec<String>, length_limit: usize) -> Vec<Vec<String>
 }
 
 // Compute the summation of given tokens as [start,upper limit,equation].
-fn summation(tokens: &Vec<String>) -> Result<String, String> {
+fn summation(tokens: &Vec<String>) -> Result<String, &str> {
     let separated_tokens = separate_vector(&tokens, 3);
     
     match separated_tokens.len() {
-        0 => return Err("Missing summation start, upper limit, and equation".to_string()),
-        1 => return Err("Missing summation upper limit and equation".to_string()),
-        2 => return Err("Missing summation equation".to_string()),
+        0 => return Err("Missing summation start, upper limit, and equation"),
+        1 => return Err("Missing summation upper limit and equation"),
+        2 => return Err("Missing summation equation"),
         _ => {}
     }
-    let start = match evaluate(infix_to_postfix(separated_tokens[0].clone())) {
+    let start = match evaluate(infix_to_postfix(&separated_tokens[0])) {
         Ok(result) => result as i64,
-        Err(_) => return Err("Could not evaluate summation start".to_string()),
+        Err(_) => return Err("Could not evaluate summation start"),
     };
 
-    let upper_limit = match evaluate(infix_to_postfix(separated_tokens[1].clone())) {
+    let upper_limit = match evaluate(infix_to_postfix(&separated_tokens[1])) {
         Ok(result) => result as i64,
-        Err(_) => return Err("Could not evaluate summation upper limit".to_string()),
+        Err(_) => return Err("Could not evaluate summation upper limit"),
     };
 
     let equation = separated_tokens[2].clone();
@@ -75,33 +75,33 @@ fn summation(tokens: &Vec<String>) -> Result<String, String> {
                 *token = i.to_string();
             }
         }
-        match evaluate(infix_to_postfix(equation_tokens)) {
+        match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => summation_result += result,
-            Err(_) => return Err("Could not evaluate summation equation".to_string()),
+            Err(_) => return Err("Could not evaluate summation equation"),
         }
     }
     Ok(summation_result.to_string())
 }
 
 // Compute the product of given tokens as [start,upper limit,equation].
-fn product(tokens: &Vec<String>) -> Result<String, String> {
+fn product(tokens: &Vec<String>) -> Result<String, &str> {
     let separated_tokens = separate_vector(&tokens, 3);
 
     match separated_tokens.len() {
-        0 => return Err("Missing product start, upper limit, and equation".to_string()),
-        1 => return Err("Missing product upper limit and equation".to_string()),
-        2 => return Err("Missing product equation".to_string()),
+        0 => return Err("Missing product start, upper limit, and equation"),
+        1 => return Err("Missing product upper limit and equation"),
+        2 => return Err("Missing product equation"),
         _ => {}
     }
 
-    let start = match evaluate(infix_to_postfix(separated_tokens[0].clone())) {
+    let start = match evaluate(infix_to_postfix(&separated_tokens[0])) {
         Ok(result) => result as i64,
-        Err(_) => return Err("Could not evaluate product start".to_string()),
+        Err(_) => return Err("Could not evaluate product start"),
     };
 
-    let upper_limit = match evaluate(infix_to_postfix(separated_tokens[1].clone())) {
+    let upper_limit = match evaluate(infix_to_postfix(&separated_tokens[1])) {
         Ok(result) => result as i64,
-        Err(_) => return Err("Could not evaluate product upper limit".to_string()),
+        Err(_) => return Err("Could not evaluate product upper limit"),
     };
 
     let equation = separated_tokens[2].clone();
@@ -114,27 +114,27 @@ fn product(tokens: &Vec<String>) -> Result<String, String> {
                 *token = i.to_string();
             }
         }
-        match evaluate(infix_to_postfix(equation_tokens)) {
+        match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => product_result *= result,
-            Err(_) => return Err("Could not evaluate product equation".to_string()),
+            Err(_) => return Err("Could not evaluate product equation"),
         }
     }
     Ok(product_result.to_string())
 }
 
 // Compute the average of given tokens as [value,value,...].
-fn mean(tokens: &Vec<String>) -> Result<String, String> {
+fn mean(tokens: &Vec<String>) -> Result<String, &str> {
     let separated_tokens = separate_vector(&tokens, 0);
 
     let total_values = separated_tokens.len();
     if total_values == 0 {
-        return Err("Missing average values".to_string());
+        return Err("Missing average values");
     }
 
     let sum = separated_tokens.iter().try_fold(0.0, |acc, equation_tokens| {
-        match evaluate(infix_to_postfix(equation_tokens.to_vec())) {
+        match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => Ok(acc + result),
-            Err(_) => Err("Could not evaluate average value equation".to_string()),
+            Err(_) => Err("Could not evaluate average value equation"),
         }
     })?;
     let average = sum / total_values as f64;
@@ -142,22 +142,22 @@ fn mean(tokens: &Vec<String>) -> Result<String, String> {
 }
 
 // Compute the standard deviation of given tokens as [value,value,...].
-fn std_deviation(tokens: &Vec<String>) -> Result<String, String> {
+fn std_deviation(tokens: &Vec<String>) -> Result<String, &str> {
     let separated_tokens = separate_vector(&tokens, 0);
 
     let total_values = separated_tokens.len() as f64;
     if total_values == 0.0 {
-        return Err("Missing standard deviation values".to_string());
+        return Err("Missing standard deviation values");
     }
 
     let mut values: Vec<f64> = Vec::new();
     let sum = separated_tokens.iter().try_fold(0.0, |acc, equation_tokens| {
-        match evaluate(infix_to_postfix(equation_tokens.to_vec())) {
+        match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => {
                 values.push(result);
                 Ok(acc + result)
             }
-            Err(_) => Err("Could not evaluate average value equation".to_string()),
+            Err(_) => Err("Could not evaluate average value equation"),
         }
     })?;
     let mean = sum / total_values;
@@ -167,34 +167,34 @@ fn std_deviation(tokens: &Vec<String>) -> Result<String, String> {
 }
 
 // Computes quadratic formula of given tokens as [a,b,c].
-fn quadratic(tokens: &Vec<String>) -> Result<String, String> {
+fn quadratic(tokens: &Vec<String>) -> Result<String, &str> {
     let separated_tokens = separate_vector(&tokens, 3);
 
     match separated_tokens.len() {
-        0 => return Err("Missing quadratic a, b, and c values".to_string()),
-        1 => return Err("Missing quadratic b and c values.".to_string()),
-        2 => return Err("Missing quadratic c value".to_string()),
+        0 => return Err("Missing quadratic a, b, and c values"),
+        1 => return Err("Missing quadratic b and c values."),
+        2 => return Err("Missing quadratic c value"),
         _ => {}
     }
 
-    let a = match evaluate(infix_to_postfix(separated_tokens[0].clone())) {
+    let a = match evaluate(infix_to_postfix(&separated_tokens[0])) {
         Ok(result) => result as f64,
-        Err(_) => return Err("Could not evaluate quadratic a value".to_string()),
+        Err(_) => return Err("Could not evaluate quadratic a value"),
     };
 
-    let b = match evaluate(infix_to_postfix(separated_tokens[1].clone())) {
+    let b = match evaluate(infix_to_postfix(&separated_tokens[1])) {
         Ok(result) => result as f64,
-        Err(_) => return Err("Could not evaluate quadratic b value".to_string()),
+        Err(_) => return Err("Could not evaluate quadratic b value"),
     };
 
-    let c = match evaluate(infix_to_postfix(separated_tokens[2].clone())) {
+    let c = match evaluate(infix_to_postfix(&separated_tokens[2])) {
         Ok(result) => result as f64,
-        Err(_) => return Err("Could not evaluate quadratic c value".to_string()),
+        Err(_) => return Err("Could not evaluate quadratic c value"),
     };
 
     let discriminant = b.powi(2) - (4.0 * a * c);
     if discriminant < 0.0 {
-        return Err("No real quadratic solutions".to_string());
+        return Err("No real quadratic solutions");
     }
     let first_solution = (-b + discriminant) / 2.0 * a;
     let second_solution = (-b - discriminant) / 2.0 * a;

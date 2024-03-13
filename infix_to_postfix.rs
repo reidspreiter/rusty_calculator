@@ -13,7 +13,7 @@ fn precedence(operator: &str) -> i8 {
 }
 
 // Convert infix to postfix
-pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
+pub fn infix_to_postfix(tokens: &Vec<String>) -> Vec<String> {
     let mut postfix_expression: Vec<String> = Vec::new();
     let mut stack: Vec<String> = Vec::new();
 
@@ -26,9 +26,9 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     }
                     postfix_expression.push(stack.pop().unwrap());
                 }
-                stack.push(token);
+                stack.push(token.to_string());
             },
-            "(" => stack.push(token),
+            "(" => stack.push(token.to_string()),
             ")" => {
                 while let Some(top) = stack.pop() {
                     if top == "(" {
@@ -37,7 +37,7 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
                     postfix_expression.push(top);
                 }
             },
-            _ => postfix_expression.push(token),
+            _ => postfix_expression.push(token.to_string()),
         }
     }
     postfix_expression.extend(stack.into_iter().rev());
