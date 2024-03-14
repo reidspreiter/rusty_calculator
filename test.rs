@@ -9,15 +9,9 @@ fn compute_result(text: &str) -> String {
         ('p', "3.14159265359".to_string()),
         ('e', "2.71828182845".to_string()),
         ('=', "0".to_string()),
-        ('i', "1".to_string()),
-        ('j', "1".to_string()),
-        ('k', "1".to_string()),
-        ('l', "1".to_string()),
-        ('m', "1".to_string()),
-        ('n', "1".to_string()),
-        ('o', "1".to_string()),
     ].iter().cloned().collect();
 
+    println!("Test: {}", text);
     let equations: Vec<&str> = text.split(";").collect();
     for equation in equations {
         match tokenize(equation, &variables) {
@@ -67,7 +61,7 @@ pub fn test() {
         ("-e", "-2.71828182845"),
         ("pe", "8.539734222645713"),
         ("p e", "8.539734222645713"),
-        ("1;p=e=======;", "8.539734222645713"),
+        ("1;p=e=======", "8.539734222645713"),
         ("R2^2", "2"),
         ("-2^3;-=", "8"),
         ("-2^2;(-=)^2", "16"),

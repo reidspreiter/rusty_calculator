@@ -1,4 +1,5 @@
 use std::io;
+use std::io::Write;
 use std::process::ExitCode;
 mod tokenize;
 mod infix_to_postfix;
@@ -13,6 +14,8 @@ fn main() -> ExitCode {
     
     println!("Welcome to Rusty Calculator. Enter your equations below:");
     loop {
+        print!("\n> ");
+        io::stdout().flush().unwrap();
         let mut text = String::new();
         io::stdin().read_line(&mut text).expect("Failed to read line");
         if text.ends_with('\n') {
