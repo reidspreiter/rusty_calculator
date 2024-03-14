@@ -150,7 +150,8 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     ']' if complex_tokens => {
                         // Complexity level complete. Evaluate complexity and push result.
                         if index == 0 {
-                            return Err("Unable to tokenize complexities. Dumping equation.".to_string());
+                            return Err("Unable to tokenize complexities.\
+                                        Dumping equation.".to_string());
                         }
 
                         if let Some(parenthesis) = balanced_parenthesis.pop() {
@@ -223,7 +224,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
             curr_tokens.push(')'.to_string());
         }
     }
-    
+
     if let Some(final_tokens) = tokens.pop() {
         if tokens.is_empty() {
             return Ok(final_tokens);
