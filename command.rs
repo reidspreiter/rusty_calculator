@@ -135,7 +135,7 @@ fn print_info() {
     |    whitespace anywhere thereafter.\n\n\
     Parenthesis Balancing:\n\
     | Operations with unbalanced parenthesis will become balanced.\n\
-    |    '4(4(4(4' will be automatically interpreted as '4(4(4(4))).\n\
+    |    '4(4(4(4' will be automatically interpreted as '4(4(4(4)))'.\n\
     | This also applies to values entered within complex operators.\n\
     |    'S[1,4(4(4,5(5+6]' will be automatically interpreted\n\
     |    as 'S[1,4(4(4)),5(5+6)]'.");
@@ -176,7 +176,7 @@ fn print_operators() {
     Pythagorean Theorem: 'H'\n\
     | Computes hypotenuse length of right triangle with\n\
     |    side lengths x and y (xHy).\n\
-    | Always returns a posotive length value.\n\n\
+    | Always returns a positive length value.\n\n\
     Absolute Value: 'A'\n\
     | Computes absolute value of x (Ax).");
 }
@@ -242,5 +242,6 @@ fn print_operation_order() {
     println!("Rusty Calculator's order of operations (Operators\n\
         in between [] have the same precedence and will be evaluated\n\
         from left to right):\n\n\
-        !, ^, ~ (negation), [R, L, H, A], [*, /, %, #, //], [%%, \\], [+, -]");
+        !, ^, ~ (negation), [R, L, N, H, A], [*, /, %, #, //], [%%, \\], [+, -]\n\n\
+        Complex operators are evaluated to numerical values before order of operations are applied.");
 }
