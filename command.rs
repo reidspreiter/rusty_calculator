@@ -4,6 +4,7 @@ use crate::infix_to_postfix::infix_to_postfix;
 use crate::evaluate::evaluate;
 use std::collections::HashMap;
 
+// Initializes and returns a default variable map.
 pub fn get_variable_map() -> HashMap<char, String> {
     let variables: HashMap<char, String> = [
         ('p', "3.14159265359".to_string()),
@@ -20,6 +21,7 @@ pub fn get_variable_map() -> HashMap<char, String> {
     variables
 }
 
+// Initializes and returns a default settings map.
 pub fn get_settings_map() -> HashMap<String, bool> {
     let settings: HashMap<String, bool> = [
         ("reveal".to_string(), false),
@@ -28,14 +30,16 @@ pub fn get_settings_map() -> HashMap<String, bool> {
     settings
 }
 
-// Execute commands
-pub fn execute_command(command: &str, variables: &mut HashMap<char, String>, settings: &mut HashMap<String, bool>) {
+// Calls correct command function.
+pub fn execute_command(command: &str, 
+                        variables: &mut HashMap<char, String>, 
+                        settings: &mut HashMap<String, bool>) {
     match command {
         "/help" => help(),
         "/reset" => reset(variables, settings),
         "/variables" => print_variables(variables),
         "/x" => set_quit(settings),
-        "/test" => test::test(),
+        "/test" => test::run_tests(),
         "/reveal" => set_reveal(settings),
         "/info" => print_info(),
         "/op" => print_operators(),
@@ -46,6 +50,7 @@ pub fn execute_command(command: &str, variables: &mut HashMap<char, String>, set
     }
 }
 
+// Changes the value of a user variable to a user-specified value or operation result.
 pub fn change_variable(command: &str, variables: &mut HashMap<char, String>) {
     if let Some(variable) = command.chars().nth(1) {
         match variable {
@@ -70,6 +75,7 @@ pub fn change_variable(command: &str, variables: &mut HashMap<char, String>) {
     }
 }
 
+// Prints helpful command info.
 fn help() {
     println!("Help:\n\
     /x         -> Quit calculator\n\
@@ -85,12 +91,14 @@ fn help() {
     /oporder   -> Prints order of operations");
 }
 
+// Resets variables and settings maps to their default values.
 fn reset(variables: &mut HashMap<char, String>, settings: &mut HashMap<String, bool>) {
     *variables = get_variable_map();
     *settings = get_settings_map();
     println!("Variables and settings reset successfully");
 }
 
+// Prints current variable values.
 fn print_variables(variables: &mut HashMap<char, String>) {
     println!("Variables:");
     for (key, value) in variables {
@@ -98,15 +106,18 @@ fn print_variables(variables: &mut HashMap<char, String>) {
     }
 }
 
+// Notifies the main loop that it should return.
 fn set_quit(settings: &mut HashMap<String, bool>) {
     settings.insert("quit".to_string(), true);
 }
 
+// Toggles reveal settings value.
 fn set_reveal(settings: &mut HashMap<String, bool>) {
     settings.insert("reveal".to_string(), !settings["reveal"]); 
     println!("Reveal changed to {}", settings["reveal"]);
 }
 
+// Prints basic Rusty Calculator behavior information.
 fn print_info() {
     println!("General Information:\n\n\
     Numbers:\n\
@@ -130,6 +141,7 @@ fn print_info() {
     |    as 'S[1,4(4(4)),5(5+6)]'.");
 }
 
+// Prints operator information.
 fn print_operators() {
     println!("Operators:\n\n\
     Addition: '+'\n\
@@ -169,6 +181,7 @@ fn print_operators() {
     | Computes absolute value of x (Ax).");
 }
 
+// Prints variable information.
 fn print_variable_info() {
     println!("Variable Info:\n\n\
     Pi: 'p'\n\
@@ -193,6 +206,7 @@ fn print_variable_info() {
     |    '_n(5R41)'");
 }
 
+// Prints complex operator information.
 fn print_complex_operators() {
     println!("Complex Operators:\n\n\
     General Info:\n\
@@ -223,6 +237,7 @@ fn print_complex_operators() {
     |    the second root will be treated as the result.");
 }
 
+// Prints order of operations.
 fn print_operation_order() {
     println!("Rusty Calculator's order of operations (Operators\n\
         in between [] have the same precedence and will be evaluated\n\

@@ -3,16 +3,16 @@ use crate::tokenize::tokenize;
 use crate::infix_to_postfix::infix_to_postfix;
 use crate::evaluate::evaluate;
 
-// Executes the text equation and returns the final result
-fn compute_result(text: &str) -> String {
+// Executes a test equation and returns the final result.
+fn compute_result(test: &str) -> String {
     let mut variables: HashMap<char, String> = [
         ('p', "3.14159265359".to_string()),
         ('e', "2.71828182845".to_string()),
         ('=', "0".to_string()),
     ].iter().cloned().collect();
 
-    println!("Test: {}", text);
-    let equations: Vec<&str> = text.split(";").collect();
+    println!("Test: {}", test);
+    let equations: Vec<&str> = test.split(";").collect();
     for equation in equations {
         match tokenize(equation, &variables) {
             Ok(tokens) => {
@@ -27,12 +27,13 @@ fn compute_result(text: &str) -> String {
             Err(e) => println!("Error: {}", e),
         }
     }
+
     let result = variables.get(&'=').unwrap();
     result.to_string()
 }
 
-// Runs all tests
-pub fn test() {
+// Runs all tests.
+pub fn run_tests() {
     println!("Starting tests...");
     let mut success = 0;
     let mut failure = 0;

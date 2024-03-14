@@ -14,7 +14,7 @@ pub fn complex_evaluate<'a>(tokens: &'a Vec<String>, complexity_type: &char) -> 
 }
 
 // Separates a vector into multiple vectors based on commas.
-// Length_limit of 0 will separate indefinitely.
+// length_limit of 0 will separate indefinitely.
 fn separate_vector(tokens: &Vec<String>, length_limit: usize) -> Vec<Vec<String>> {
     let mut separated_tokens: Vec<Vec<String>> = vec![Vec::new()];
 
@@ -37,6 +37,7 @@ fn separate_vector(tokens: &Vec<String>, length_limit: usize) -> Vec<Vec<String>
             },
         }
     }
+
     if let Some(last) = separated_tokens.last() {
         if last.is_empty() {
             separated_tokens.pop();
@@ -55,6 +56,7 @@ fn summation(tokens: &Vec<String>) -> Result<String, &str> {
         2 => return Err("Missing summation equation"),
         _ => {}
     }
+
     let start = match evaluate(infix_to_postfix(&separated_tokens[0])) {
         Ok(result) => result as i64,
         Err(_) => return Err("Could not evaluate summation start"),
@@ -66,7 +68,6 @@ fn summation(tokens: &Vec<String>) -> Result<String, &str> {
     };
 
     let equation = separated_tokens[2].clone();
-
     let mut summation_result = 0.0;
     for i in start..=upper_limit {
         let mut equation_tokens = equation.clone();
@@ -75,6 +76,7 @@ fn summation(tokens: &Vec<String>) -> Result<String, &str> {
                 *token = i.to_string();
             }
         }
+
         match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => summation_result += result,
             Err(_) => return Err("Could not evaluate summation equation"),
@@ -105,7 +107,6 @@ fn product(tokens: &Vec<String>) -> Result<String, &str> {
     };
 
     let equation = separated_tokens[2].clone();
-
     let mut product_result = 1.0;
     for i in start..=upper_limit {
         let mut equation_tokens = equation.clone();
@@ -114,6 +115,7 @@ fn product(tokens: &Vec<String>) -> Result<String, &str> {
                 *token = i.to_string();
             }
         }
+
         match evaluate(infix_to_postfix(&equation_tokens)) {
             Ok(result) => product_result *= result,
             Err(_) => return Err("Could not evaluate product equation"),
@@ -137,6 +139,7 @@ fn mean(tokens: &Vec<String>) -> Result<String, &str> {
             Err(_) => Err("Could not evaluate average value equation"),
         }
     })?;
+
     let average = sum / total_values as f64;
     Ok(average.to_string())
 }
@@ -160,6 +163,7 @@ fn std_deviation(tokens: &Vec<String>) -> Result<String, &str> {
             Err(_) => Err("Could not evaluate average value equation"),
         }
     })?;
+
     let mean = sum / total_values;
     let sum_of_squared_differences = values.iter().map(|x| (x - mean).powi(2)).sum::<f64>();
     let standard_deviation = (sum_of_squared_differences / total_values).sqrt();
@@ -196,6 +200,7 @@ fn quadratic(tokens: &Vec<String>) -> Result<String, &str> {
     if discriminant < 0.0 {
         return Err("No real quadratic solutions");
     }
+    
     let first_solution = (-b + discriminant) / 2.0 * a;
     let second_solution = (-b - discriminant) / 2.0 * a;
     let results = format!("{},{}", first_solution, second_solution);

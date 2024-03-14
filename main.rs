@@ -8,11 +8,12 @@ mod command;
 mod test;
 mod complex_evaluate;
 
+// Read operation from user and solve or call command respectively.
 fn main() -> ExitCode {
     let mut variables = command::get_variable_map();
     let mut settings = command::get_settings_map();
-    
     println!("Welcome to Rusty Calculator. Enter your equations below:");
+
     loop {
         print!("\n> ");
         io::stdout().flush().unwrap();
@@ -40,6 +41,7 @@ fn main() -> ExitCode {
                                     println!("Tokens: {:?}", tokens);
                                     println!("Expression: {:?}", expression);
                                 }
+
                                 match evaluate::evaluate(expression) {
                                     Ok(result) => {
                                         println!("Result: {}", result);
@@ -54,6 +56,7 @@ fn main() -> ExitCode {
                 }
             }
         }
+
         if settings["quit"] {
             println!("Thank you for using Rusty Calculator. Goodbye!");
             return ExitCode::SUCCESS;

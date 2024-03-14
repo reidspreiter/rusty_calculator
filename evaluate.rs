@@ -1,7 +1,7 @@
-// Evaluate postfix expression
+// Evaluates a postfix expression.
 pub fn evaluate(expression: Vec<String>) -> Result<f64, String> {
     let mut stack: Vec<f64> = Vec::new();
-
+    
     for token in expression {
         match token.as_str() {
             "+" | "-" | "*" | "/" | "^" | "%" | "#" | "\\" | "R" | "L" | "H" => {

@@ -1,4 +1,4 @@
-// Order of operations precedence for converting infix to postfix
+// Order of operations precedence for converting infix to postfix.
 fn precedence(operator: &str) -> i8 {
     match operator {
         "!" => 6,
@@ -12,7 +12,7 @@ fn precedence(operator: &str) -> i8 {
     }
 }
 
-// Convert infix to postfix
+// Converts an infix equation to a postfix equation.
 pub fn infix_to_postfix(tokens: &Vec<String>) -> Vec<String> {
     let mut postfix_expression: Vec<String> = Vec::new();
     let mut stack: Vec<String> = Vec::new();

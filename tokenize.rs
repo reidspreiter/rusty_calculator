@@ -4,7 +4,7 @@ use std::collections::HashMap;
 const OPERATORS: [&str; 15] = ["+", "-", "*", "/", "^", "%", "#", "(", 
                                 "\\", "R", "~", "L", "H", ",", "A"];
 
-// Tokenize usser entered equation into individual strings tokens.
+// Tokenize user entered equation into individual strings tokens.
 // Also evaluate complex functions and push their result as a token.
 pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<Vec<String>, String> {
     let mut tokens: Vec<Vec<String>> = vec![Vec::new()];
@@ -27,6 +27,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     }
                     number_buffer.push_str(&value.to_string())
                 }
+
                 // Push number buffer.
                 if !number_buffer.is_empty() {
                     // If last is f64 or ')', push '*' before pushing number.
@@ -37,6 +38,7 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                     curr_tokens.push(number_buffer.clone());
                     number_buffer.clear();
                 }
+
                 match c {
                     '+' => {
                         // If last is None or not an operator, push '+'.
@@ -150,22 +152,25 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
                         if index == 0 {
                             return Err("Unable to tokenize complexities. Dumping equation.".to_string());
                         }
+
                         if let Some(parenthesis) = balanced_parenthesis.pop() {
                             for _ in 0..parenthesis {
                                 curr_tokens.push(')'.to_string());
                             }
                         }
+
                         index -= 1;
                         if index == 0 {
                             complex_tokens = false;
                         }
+                        
                         if let Some(ctokens) = tokens.pop() {
                             if let Some(ctype) = complex_types.pop() {
                                 match complex_evaluate(&ctokens, &ctype) {
                                     Ok(result) if ctype == 'Q' => {
-                                        let results: Vec<&str> = result.split(',').collect();
-                                        println!("Quadratic results: {}, {}", results[0], results[1]);
-                                        tokens[index].push(results[1].to_string());
+                                        let roots: Vec<&str> = result.split(',').collect();
+                                        println!("Quadratic results: {}, {}", roots[0], roots[1]);
+                                        tokens[index].push(roots[1].to_string());
                                     },
                                     Ok(result) => tokens[index].push(result),
                                     Err(err) => return Err(err.to_string()),
@@ -212,11 +217,13 @@ pub fn tokenize(equation: &str, variable_map: &HashMap<char, String>) -> Result<
         curr_tokens.push(number_buffer.clone());
         number_buffer.clear();
     }
+
     if let Some(parenthesis) = balanced_parenthesis.pop() {
         for _ in 0..parenthesis {
             curr_tokens.push(')'.to_string());
         }
     }
+    
     if let Some(final_tokens) = tokens.pop() {
         if tokens.is_empty() {
             return Ok(final_tokens);
